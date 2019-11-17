@@ -40,7 +40,8 @@ final class LoadingMediaState: PlayerState {
     private var autostart: Bool
     private var position: Double?
     private var itemStatusObserving: ModernAVPLayerItemStatusObservingService?
-    private var interruptionAudioService: ModernAVPlayerInterruptionAudioService
+    private let interruptionAudioService: ModernAVPlayerInterruptionAudioService
+    private let itemInitService: AVPlayerItemInitService
 
     // MARK: - Init
 
@@ -48,7 +49,8 @@ final class LoadingMediaState: PlayerState {
          media: PlayerMedia,
          autostart: Bool,
          position: Double? = nil,
-         interruptionAudioService: ModernAVPlayerInterruptionAudioService = ModernAVPlayerInterruptionAudioService()) {
+         interruptionAudioService: ModernAVPlayerInterruptionAudioService = ModernAVPlayerInterruptionAudioService(),
+         itemInitService: AVPlayerItemInitService = ModernAVPlayerItemInitService()) {
         ModernAVPlayerLogger.instance.log(message: "Init", domain: .lifecycleState)
         
         self.context = context
@@ -56,6 +58,7 @@ final class LoadingMediaState: PlayerState {
         self.autostart = autostart
         self.position = position
         self.interruptionAudioService = interruptionAudioService
+        self.itemInitService = itemInitService
         
         /*
          Loading a clip media from playing state, play automatically the new clip media
@@ -129,13 +132,8 @@ final class LoadingMediaState: PlayerState {
         context.player.replaceCurrentItem(with: nil)
     }
     
-    private func createItem(with media: PlayerMedia) -> AVPlayerItem {
-        let asset = AVURLAsset(url: media.url, options: media.assetOptions)
-        return AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: context.config.itemLoadedAssetKeys)
-    }
-
     private func createReplaceItem(media: PlayerMedia) {
-        let item = createItem(with: media)
+        let item = itemInitService.getItem(media: media, loadedAssetKeys: ["playable", "duration"])
         
         startObservingItemStatus(item: item)
         context.player.replaceCurrentItem(with: item)
