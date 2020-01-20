@@ -181,7 +181,7 @@ final class PlayingState: PlayerState {
     // MARK: - Private actions
 
     private func changeState(state: PlayerState) {
-        //removeTimeObserver()
+        removeTimeObserver()
         context.changeState(state: state)
     }
 
